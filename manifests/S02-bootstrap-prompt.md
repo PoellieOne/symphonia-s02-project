@@ -35,7 +35,7 @@ Markeer deze sessie als:
 
 GIST_USER: https://gist.github.com/PoellieOne
 
-1. Zoek binnen deze gist index naar: S02 + Symphonia + manifests → dat is ons project.
+1. Zoek binnen deze gist index naar de gist met naam `0_symphonia-s02-project-mirror` → dat is ons project.
 2. Open in deze gist het bestand **`README.md`** als RAW text.
 3. Volg dit README als **canonieke index** voor S02:
 
