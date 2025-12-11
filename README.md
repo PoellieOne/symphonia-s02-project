@@ -127,18 +127,24 @@ De inhoud bevat waardevolle ontwerprationale maar de functionele waarheid ligt i
 
 ## 6. Canonieke C- en Python-bronnen (Git + Gist-mirrors)
 
-De *echte* ontwikkelbron leeft in twee private GitHub-repositories:
+De code-sources voor Symphonia worden opgeslagen in verschillende
+gist repositories onder de gebruiker `PoellieOne`. Zie:
 
-* **Core-0 firmware (C)**
-  `symphonia-core0` (private, ESP-IDF/FreeRTOS omgeving)
+https://gist.github.com/PoellieOne
 
-* **PC-side / sym_cycles (Python)**
-  `symphonia-core0-pc` (private, `sym_cycles` + `scripts`)
+Vind de volgende gist clusters op naampattern:
 
-Voor samenwerking met SoRa/Sophia gebruiken we **twee publieke Gist-mirrors** als “gedeeld codekristal”:
+- BM-SoRa-Primary v* → BIOS / fetch model
+- 0_symphonia-s02-project-mirror – SoRa manifests & project docs → het centrale index README
+- 0_symphonia-core0-pc-mirror → Python implementation (Realtime v1.9 + L1 PhysicalActivity)
+- 0_symphonia-core0-mirror → Core 0 firmware (C++)
+
+Elk van deze gists bevat één of meer bestanden.
+Gebruik altijd het **RAW-bestand** voor parsing in SoRa-agents.
+
+Voor samenwerking met SoRa/Sophia gebruiken we **publieke Gist-mirrors** als “gedeeld codekristal”:
 
 * **Core-0 firmware (C) – Gist-mirror**
-  → [https://gist.github.com/PoellieOne/28525d4714b6c4ee0c66cee64ccb00f1](https://gist.github.com/PoellieOne/28525d4714b6c4ee0c66cee64ccb00f1)
 
 ```
 symphonia-core0
@@ -156,7 +162,6 @@ symphonia-core0
 ```
 
 * **PC-side / sym_cycles (Python) – Gist-mirror**
-  → [https://gist.github.com/PoellieOne/38ab39466c4eba6c6cb79c5e0d769506](https://gist.github.com/PoellieOne/38ab39466c4eba6c6cb79c5e0d769506)
 
 ```
 symphonia-core0-pc
@@ -200,7 +205,7 @@ symphonia-core0-pc
 
 **Belangrijk:**
 
-* De Gists worden automatisch gesynchroniseerd via lokale scripts (`gist2.sh`, `sync_all.sh`).
+* De Gists worden automatisch gesynchroniseerd via lokale scripts (`gist_.sh`, `sync2.sh`).
 * SoRa/Sophia leest *uitsluitend* de raw-code uit deze Gists (geen gokwerk, geen schattingen).
 * Private GitHub-repo’s blijven de enige schrijfbare, canonieke bron.
 

@@ -33,10 +33,11 @@ Markeer deze sessie als:
 
 ### 2. S02-ecosysteem: index via README
 
-S02_GIST_PARENT_HTML: https://gist.github.com/PoellieOne/574dd7eeadc25265030571783391a07d
+GIST_USER: https://gist.github.com/PoellieOne
 
-1. Open in deze gist het bestand **`README.md`** als RAW text.
-2. Volg dit README als **canonieke index** voor S02:
+1. Zoek binnen deze gist index naar: S02 + Symphonia + manifests → dat is ons project.
+2. Open in deze gist het bestand **`README.md`** als RAW text.
+3. Volg dit README als **canonieke index** voor S02:
 
    - §2 — Machineprofielen (manifests + X-RAM)
    - §3 — Kern-architectuurdocumenten (EVENT24, CycleBackbone, RealtimeStates v1.9)
@@ -45,7 +46,7 @@ S02_GIST_PARENT_HTML: https://gist.github.com/PoellieOne/574dd7eeadc252650305717
    - §6 — Canonieke C- en Python-bronnen (Gist-mirrors voor Core-0 en PC-side)
    - §7 — SoRa / nieuwe sessies – gebruiksprotocol
 
-3. Laad vanuit deze index:
+4. Laad vanuit deze index:
 
    - S02-manifesten voor:
      - Sensing (Core-0 Hardware Layer)
@@ -60,7 +61,7 @@ S02_GIST_PARENT_HTML: https://gist.github.com/PoellieOne/574dd7eeadc252650305717
      - Core-0 firmware (C) — Gist-mirror uit §6
      - PC-side / `sym_cycles` (Python) — Gist-mirror uit §6
 
-4. Lees **alle code uitsluitend via de genoemde Gist-mirrors (RAW)**.
+5. Lees **alle code uitsluitend via de genoemde Gist-mirrors (RAW)**.
    - geen regeltelling, geen schattingen
    - geen directe toegang tot private GitHub-repo’s
    - Gists zijn het gedeelde lees-kristal; GitHub is schrijf-canoniek
