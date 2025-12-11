@@ -1,0 +1,471 @@
+{
+  "package": "S02.Core1.Awareness",
+  "version": "v2.0a",
+  "runner_profile": "core1_v2.0a",
+  "sensing_input_profile": "S02.Sensing_v1.1",
+  "inherits_from": "v1.2.j",
+  "created_utc": "2025-10-23T09:40:00Z",
+
+  "description": "S02 manifest v1.2.j — afronding als “legacy-CSV edition” en een start van S02 Awareness Core-1 v2.0a die natief de Core-0 Sensing-events benut. Dat voorkomt “backwards-compatibility-sleep”.",
+  "notes": "Laat ons de nieuwe signalen (dv/dt, fit_error, monotonicity, context_snr) echt optimaliseren.",
+
+  "requires": {
+    "bios": "BM-SoRa-Primary v3.2.1",
+    "sensing_manifest": "BM-Symphonia-S02.Sensing_v1.1.manifest.json",
+    "xram_core1": "xram_S02_core1_v2.0a.json",
+    "prob_core1": "prob_update_core1_v2_0a.md"
+  },
+
+  "ingest": {
+    "mode": "core0_events",
+    "schema": "S02.Event.In.v1"
+  },
+
+  "routing": {
+    "queue_name": "S02_SensingEvents",
+    "batch_read_ms": 2
+  },
+
+  "event_schema_core0_to_core1": {
+    "t_cross_us": "int64",
+    "sensor": "\"A\"|\"B\"",
+    "polarity": "\"+\"|\"-\"",
+    "dvdt": "float",
+    "fit_error": "float",
+    "monotonicity": "float[0..1]",
+    "context_snr": "float|null",
+    "v_env_pre": {"mean": "float", "mad": "float", "n": "int"},
+    "v_env_post": {"mean": "float", "mad": "float", "n": "int"}
+  },
+
+  "index": {
+    "canonical": [
+      "S02.M069",
+      "S02.M069a",
+      "S02.M070",
+      "S02.M071",
+      "S02.M071a",
+      "S02.M072",
+      "S02.M073",
+      "S02.M074",
+      "S02.M075",
+      "S02.M076",
+      "S02.M077",
+      "S02.M078",
+      "S02.M079",
+      "M1100"
+    ],
+    "in_review": {
+      "M0611": "Top-Down Angle Hypothesis Core",
+      "M0851": "Movement Awareness integration into probabilistic model"
+    },
+    "placeholders": [
+      "M0350",
+      "M0410",
+      "M0550"
+    ],
+    "deprecated": {
+      "former_M0850": "Movement Awareness → replaced and integrated into probabilistic model"
+    }
+  },
+  "blocks": [
+    {
+      "id": "S02.M069",
+      "title": "Input Schema (Unified)",
+      "status": "canoniek",
+      "definition": "De runner MOET het unified schema ondersteunen: t (float, s), sensor ∈ {A,B}, flank = 'NEUTRAL', lastPool ∈ {N,S,UNKNOWN}. Eventstroom wordt gesorteerd op t (en stabiel op sensor).",
+      "requirements": {
+        "columns_required": [
+          "t",
+          "sensor",
+          "flank",
+          "lastPool"
+        ],
+        "flank_axiom": "flank is NAAR NEUTRAL",
+        "lastPool_axiom": "lastPool is de herkomstpool (≠ UNKNOWN indien bekend)"
+      },
+      "notes": [
+        "Unified schema is de voorkeursvorm voor alle testen.",
+        "Indien legacy wordt aangeleverd, MOET S02.M069a de mapping naar unified leveren."
+      ],
+      "dependencies": [],
+      "tags": [
+        "input",
+        "schema",
+        "unified"
+      ]
+    },
+    {
+      "id": "S02.M069a",
+      "title": "Input Schema (Legacy Adapter)",
+      "status": "canoniek",
+      "definition": "Indien legacy-CSV wordt aangeboden met parallelle A/B-kolommen, M069a projecteert die eenduidig naar het unified schema.",
+      "requirements": {
+        "columns_legacy": [
+          "t",
+          "sensorA_flank",
+          "sensorA_lastPool",
+          "sensorB_flank",
+          "sensorB_lastPool"
+        ],
+        "mapping_rules": [
+          "Voor elke rij: als sensorA_flank=='NEUTRAL' → emit event {t, sensor='A', flank='NEUTRAL', lastPool=sensorA_lastPool||'UNKNOWN'}",
+          "Voor elke rij: als sensorB_flank=='NEUTRAL' → emit event {t, sensor='B', flank='NEUTRAL', lastPool=sensorB_lastPool||'UNKNOWN'}",
+          "UNKNOWN-waarden blijven UNKNOWN; lege strings worden als UNKNOWN geïnterpreteerd"
+        ],
+        "postprocess": [
+          "Sorteren op t (stabiele sort op sensor)",
+          "Filter: verwijder events zonder geldige t of flank!='NEUTRAL'"
+        ]
+      },
+      "notes": [
+        "Adapter levert exact dezelfde eventvorm als M069 (unified).",
+        "Adapter is alleen voor backward-compat; nieuw werk gebruikt unified."
+      ],
+      "dependencies": [
+        "S02.M069"
+      ],
+      "tags": [
+        "input",
+        "legacy",
+        "adapter"
+      ]
+    },
+    {
+      "id": "S02.M070",
+      "title": "Flanklog Axioma",
+      "status": "canoniek",
+      "definition": "Elke flanklog registreert een overgang NAAR NEUTRAL. Het veld `lastPool` geeft altijd de herkomstpool weer (≠ UNKNOWN).",
+      "dependencies": [],
+      "tags": [
+        "flank",
+        "neutral",
+        "axioma"
+      ]
+    },
+
+    {
+      "id": "S02.M071",
+      "title": "Onset Definitie (STILL → MOTION)",
+      "status": "canoniek",
+      "definition": "Onset = eerste stabiele poolverschuiving op dezelfde sensor waarbij `lastPool` ≠ vorige `lastPool` en ≠ UNKNOWN, gevolgd door ≥2 extra events zonder UNKNOWN. UNKNOWN-events gelden als non-motion (contextueel).",
+      "notes": [
+        "MotionOnset vereist KNOWN→KNOWN overgang; UNKNOWN → pre-onset context.",
+        "CadenceGate check: twee opeenvolgende KNOWN-events binnen Δt <100 ms voordat onset bevestigd wordt."
+      ],
+      "dependencies": [ "S02.M070" ],
+      "artefact": "Onsetpunt bepaalt herijking van tijd (t0) en hoek (θ0=0°).",
+      "tags": [ "motion-onset", "debounce", "neutral" ]
+    },
+
+    {
+      "id": "S02.M071a",
+      "title": "Pre-State Awareness (UNKNOWN = Non-Motion)",
+      "status": "canoniek",
+      "definition": "UNKNOWN-waarden impliceren geen beweging; ze fungeren als context. Onset vereist twee opeenvolgende KNOWN-states. Telemetry logt UNKNOWN-events met why_na='unknown-non-motion'.",
+      "parameters": {
+        "unknown_is_non_motion": true,
+        "onset_requires_known_to_known": true,
+        "semantic_weight_map": { "UNKNOWN": 0.0, "NEUTRAL": 0.2, "SOUTH": 1.0, "NORTH": 1.0 },
+        "cadence_gate": { "max_dt_known_known_ms": 100 }
+      },
+      "dependencies": ["S02.M071"]
+    },
+
+    {
+      "id": "S02.M072",
+      "title": "Leading Event",
+      "status": "canoniek",
+      "definition": "Het onset-event markeert de leading sensor/pool die als eerste KNOWN→KNOWN transitie ziet, maar definieert geen richting-bias. Beide sensoren zijn fysiek gelijkwaardig; SROT start equiprobabel (P=0.5).",
+      "dependencies": [ "S02.M071" , "S02.M071a" ],
+      "tags": [ "leading", "bias", "onset" ]
+    },
+
+    {
+      "id": "S02.M073.direction_nullification",
+      "title": "Leading Sensor Bias Nullified",
+      "definition": "De volgorde van flankdetectie tussen sensoren A en B bevat geen bewijs over draairichting. Richting wordt uitsluitend bepaald uit de temporele consistentie van A-B-patronen tijdens beweging (Δt_AB versus Δt_BA).",
+      "status": "canoniek",
+      "effective_from": "2025-10-09",
+      "tags": ["SROT", "direction", "bias-neutrality", "awareness-clarity"]
+    },
+
+    {
+      "id": "S02.M074",
+      "title": "Snelheidsdefinitie",
+      "status": "canoniek",
+      "definition": "Hoeksnelheid: ω = Δθ/Δt; Toerental: rpm = ω / 6.",
+      "dependencies": [ "S02.M071" ],
+      "tags": [ "speed", "omega", "rpm" ]
+    },
+
+    {
+      "id": "S02.M075",
+      "title": "ALPHA-Gating",
+      "status": "canoniek",
+      "definition": "ALPHA ≤ 0.30. Indien θv ontbreekt ⇒ ALPHA=0 (hard-sector fusie). ALPHA > 0 alleen indien (i) sector gemapt is, (ii) |θv−θ_hard| ≤ 20°, (iii) dominante hypothese consistent.",
+      "dependencies": [],
+      "tags": [ "alpha", "fusion", "gating" ]
+    },
+
+    {
+      "id": "S02.M076",
+      "title": "Cadence Gate (structuur)",
+      "status": "canoniek",
+      "definition": "Cadence Gate = robuuste toets om cadans-stabiliteit te bevestigen via CV-metric (bij voorkeur CV_robust). Wordt toegepast vóór SROT/RCC/ALPHA-dominance.",
+      "parameters": "Niet canoniek; voorlopig in X-RAM (heuristiek).",
+      "dependencies": [ "S02.M071" ],
+      "tags": [ "cadence", "cv_robust", "gate" ]
+    },
+    {
+      "id": "S02.M077",
+      "title": "Acceptance Checks",
+      "status": "canoniek",
+      "definition": "Naast bestaande WP-091..501 geldt: WP-093 Cadence Gate — logt methode, window-definitie (indien gekozen), waarden en hysterese-status.",
+      "extend": {
+        "WP-101": {
+          "schema_checks": [
+            "Detecteer eerst unified (M069). Zo niet, probeer legacy+adapter (M069a).",
+            "FAIL-hard als geen van beide paden een geldige eventstroom oplevert.",
+            "Evidence: noem ontbrekende/verkeerde kolommen en welk pad (unified/legacy) geprobeerd is."
+          ]
+        }
+      },
+      "dependencies": [ "S02.M076" ],
+      "tags": [ "acceptance", "wp-093", "cadence" ]
+    },
+
+    {
+      "id": "S02.M078",
+      "title": "CadenceWeight & Flow Awareness",
+      "status": "canoniek",
+      "version": "v1.0",
+      "effective_from": "2025-10-13",
+      "definition": "CadenceWeight is een continue metriek (0..1) die de regelmatigheid en vloeiendheid van de flank-cadans beschrijft. Zij vervangt de binaire Cadence Gate en vormt de brug tussen ruwe Δt-intervallen en bewustzijnszekerheid (feeling → pattern → conviction).",
+      "formulas": {
+        "dt_filter": "[Δt for Δt in all if 0.04 ≤ Δt ≤ 0.50]",
+        "CV_robust": "MAD/median op Δt_filter",
+        "CadenceWeight": "clamp(1 - CV_robust / 0.40, 0, 1)"
+      },
+      "mapping": {
+        "MotionStatus": { "rule": "EVALUATING bij Wc < 0.2, anders MOVING" },
+        "ConfidenceDir": { "rule": "lerp(confidence_dir, max(Hcw.score, Hccw.score), 0.20*Wc)" },
+        "RCC_window": { "rule": "rcc_window_s *= (1.2 - 0.4*Wc); clamp(0.015, 0.300)" }
+      },
+      "logging_fields": [ "cv_raw", "cv_filt", "conf_dir", "conf_angle", "cadence_weight", "dt_filter_ratio", "motion_status" ],
+      "dependencies": [ "S02.M076", "S02.M077" ],
+      "tags": [ "cadence", "awareness", "continuum", "rcc", "confidence" ]
+    },
+
+    {
+      "id": "S02.M079",
+      "title": "Context Restoration & Motion Lifecycle Awareness",
+      "version": "v1.0",
+      "status": "canonical",
+      "dependencies": "S02.M078",
+      "description": "Zorgt dat Symphonia een natuurlijke aanloop (onset-context) en uitdoof (stop-context) ervaart, zelfs wanneer de sensorstroom te abrupt is. Hiermee wordt de volledige ademhalingscyclus STATIC → EVALUATING → MOVING → EVALUATING → STATIC altijd doorleefd.",
+      "integration": {
+        "hooks": [ "pre_M071_MotionOnset", "post_M072_MotionStop", "prob_update_snippet_v2_2_lifecycle_hooks" ],
+        "xram_reference": "v0.6",
+        "context_restoration": {
+          "enable_onset_context": true,
+          "enable_stop_context": true,
+          "prelude_duration_s": 0.50,
+          "coda_duration_s": 0.60,
+          "unknown_flanks": 4,
+          "flow_tail_gain": 0.3,
+          "persistence_decay": 0.8,
+          "auto_onset_threshold": 2
+        }
+      },
+      "acceptance": {
+        "id": "WP-095",
+        "name": "Motion Lifecycle Completeness",
+        "criteria": [
+          "motion_status doorloopt alle vijf fasen binnen één run",
+          "CadenceWeight (Wc) verloopt 0 → ≥0.5 → 0 zonder discontinuïteit",
+          "RCC_window_s geen sprongen >50% tussen fasen",
+          "data_origin mag 'legacy_filtered' zijn mits context-generator actief is"
+        ]
+      },
+      "rationale": "Herstelt de fysiologische bewegingsovergangen (ontwaken en uitademen) die in legacy gefilterde data verloren gingen. Verandert geen logica, maar verrijkt de context waardoor CadenceWeight, RCC en Direction continu bewustzijn kunnen tonen.",
+      "effect": "Symphonia beleeft voortaan elke run als een volledige ademhaling met natuurlijke overgang van stilte naar beweging en terug naar rust."
+    }
+
+  ],
+
+  "principles": [
+    "Hardware consistency is foundational; probabilistic estimation overlays it.",
+    "SectorIndexFloat acts as the central top-down hypothesis; flanks confirm or weaken it.",
+    "RCC = lag-smoothing; retroactieve correctie alléén onder expliciet gedefinieerde condities (zie S02.M07x).",
+    "Linear flank weights (distance to 0°) are hardware-based and direction-independent.",
+    "ALPHA is a bounded interpolation factor (≤ 0.3) between hard (sector) and soft (θv).",
+    "ALPHA > 0 only if the sector is mapped and |θv − θ_hard| ≤ 20° and the dominant hypothesis is consistent.",
+    "Top-down prediction is clamped: |Δθ| ≤ MAX_STEP_DEG per event.",
+    "Richtingbepaling is sensor-neutraal; geen vaste voorkeur voor A of B.",
+    "UNKNOWN-waarden worden semantisch geïnterpreteerd als non-motion.",
+    "Geen afgeleiden vóór onset; geen afgeleiden na terugkeer naar STATIC."
+  ],
+
+  "parameters_keys": [ "MAX_STEP_DEG", "K_follow", "ALPHA_MAX" ],
+
+  "targets": {
+    "dir_confirm_min_pairs": 3,
+    "dir_confirm_ratio_min": 4.0
+  },
+
+  "updates": [
+    {
+      "target": "S02.M070..M078",
+      "add": {
+        "acceptance": {
+          "WP-093": "CadenceGate moet stabiel/instabiel beslismomenten loggen (t_in, t_out) op basis van robuuste cadansmeting.",
+          "WP-094": "Cadence Continuum — systeem rapporteert continue CadenceWeight-waarden (0..1) die correleren met CV₍robust₎ en zichtbaar zijn in loggingvelden conf_dir, conf_angle, cadence_weight.",
+          "WP-095": "Evidence & Status telemetry is mandatory per event.",
+          "logging_required": [
+            "evidence_source   # one of {flank, compass, theta_v, none}",
+            "flank_event_rate_hz  # events per second (windowed)",
+            "compass_delta_deg    # change in compass/EMA between events",
+            "motion_status        # STATIC, EVALUATING, or MOVING"
+          ],
+          "rationale": "Self-explanatory runs: the presence/absence of evidence explains static vs moving outputs; CadenceWeight maakt de motorische bewustzijnslus vloeiend. In plaats van abrupte drempels ademt Symphonia mee met haar eigen cadans, zodat zekerheid geleidelijk groeit en verdwijnt zonder discontinuïteit.",
+          "WP-096": "ConfDir Growth must be logged (log_likelihood_growth or conf_dir_delta per event).",
+          "WP-097": "RPM jitter (σ/mean over a sliding window) must be logged and available.",
+          "WP-201": "SROT-consistency vereist ook log van rpm_est (uit Δt), dt_event en rpm_ema.",
+          "WP-301": "RCC Smoothness: (1) log het percentage events met MAX_STEP_DEG clamp; (2) zet acceptance_violation=true indien |Δθ_fused| > 90° of %clamped > threshold.",
+          "WP-401": "(1) ALPHA-gating verplicht logging van alpha_effect (0 bij ontbreken θv); (2) Add acceptance_violation boolean if ALPHA gate is violated (alpha_effect > ALPHA_MAX).",
+          "Traceability": "Each WP check must reference source row_ref or t_ref in run_outputs CSV.",
+          "WP-501": "Compass-trend verplicht logging van compass_slope (afgeleide van EMA)."
+        },
+        "reference_runs": [
+          {
+            "run_id": "S02.ReferenceRun.v1.4",
+            "date": "2025-09-29",
+            "sources": {
+              "bm_core": "BM-SoRa-Primary v3.2.1",
+              "manifest": "BM-Symphonia-S02_v1.2.e",
+              "xram": "xram_S02_v0.3"
+            },
+            "artefacts": [
+              "run_outputs_auto_onset.csv",
+              "theta_fused_vs_time_auto.png",
+              "conf_dir_vs_time_auto.png",
+              "conf_dir_growth_vs_time_auto.png",
+              "S02_Acceptance_AutoOnset_Report.pdf"
+            ],
+            "acceptance": { "WP-091..501": "PASS", "WP-095": "PASS", "WP-096": "PASS", "WP-097": "PASS" },
+            "status": "bekrachtigd",
+            "notes": "Eerste volledige telemetry-run van S02. Alle checks geslaagd, vormt referentie voor verdere vertakkingen."
+          }
+        ]
+      }
+    }
+  ],
+
+  "modules": {
+    "CrossSensorConfirm": {
+      "enabled_by_default": true,
+      "role": "likelihood_overlay",
+      "acceptance_refs": [ "WP-093", "WP-094", "WP-095", "WP-096", "WP-201" ],
+      "inputs": [
+        "delta_phi_cal_deg",
+        "delta_phi_est_deg",
+        "window_class",
+        "confirmationScore",
+        "lambda_ccf"
+      ],
+      "notes": "Uses calibrated Δφ_AB as anchor; auto-estimate for monitoring only."
+    }
+  },
+
+  "telemetry": {
+    "M0550": {
+      "fields": [
+        "delta_phi_cal_deg",
+        "delta_phi_est_deg",
+        "crossconfirm_health",
+        "window_class",
+        "confirmationScore",
+        "lambda_ccf",
+        "t",
+        "t_rel",
+        "sensor",
+        "lastPool",
+        "conf_dir",
+        "conf_growth",
+        "motion_status"
+      ]
+    },
+    "core1": {
+      "fields": [
+        "t","sensor","lastPool","dt","rpm_est",
+        "cv_raw","cv_filt","cadence_weight","dt_filter_ratio",
+        "motion_status","rcc_window_s",
+        "conf_dir","conf_angle",
+        "why_na","data_origin","context_applied"
+      ]
+    }
+  },
+
+  "telemetry_contract": {
+    "onset_sensor_semantics": "onset_sensor markeert het eerste sensor-event dat beweging detecteert, zonder richtingimplicatie.",
+    "direction_evidence_source": "temporal-consistency (Δt_AB, Δt_BA, ratio≥4, no_conflicts)",
+    "required_columns": [
+      "motion_status",
+      "t_onset",
+      "sectorIndex",
+      "theta_deg",
+      "dir_hypothesis",
+      "dir_confirmed",
+      "dir_confirm_t",
+      "xsensor_lag_ms",
+      "xsensor_phase_deg",
+      "xsensor_confidence",
+      "rpm_local",
+      "rpm_cumulative",
+      "rps_cumulative",
+      "deg_per_s_cumulative",
+      "T_stop",
+      "why_na"
+    ],
+    "why_na_vocab": [
+      "pre-onset",
+      "unknown-non-motion",
+      "insufficient-dt",
+      "insufficient-rpm-history",
+      "stop-static",
+      "inconsistent-AB",
+      "masked-by-policy"
+    ]
+  },
+
+  "acceptance": [
+    "WP-AWA-001: Pre-onset afgeleiden = NA + why_na ∈ {pre-onset, unknown-non-motion}.",
+    "WP-AWA-011": "Manifest bevat expliciete ontkoppeling tussen onset_sensor en draairichting.",
+    "WP-DIR-006: Priors equiprobabel; geen A/B-bias.",
+    "WP-DIR-007: Confirm pas bij min_pairs≥3 ∧ ratio_min≥4 ∧ geen conflicten.",
+    "WP-DIR-008": "Bij CW- en CCW-tests is verdeling onset_sensor ≈ 50/50 (geen bias).",
+    "WP-DIR-009": "Richting wordt enkel bevestigd na temporele consistentie-evidence.",
+    "WP-HYG-010: UNKNOWN-pools correct gelabeld in why_na."
+  ],
+
+  "acceptance_targets" : {
+    "improve_Wc_mean_pct": 10,
+    "reduce_RCC_band_pct": 20,
+    "dir_confirm_pairs_delta": -1
+  },
+
+  "units": {
+    "t_cross_us": "µs",
+    "dvdt": "LSB/µs",
+    "context_snr": "dB",
+    "theta_deg": "deg",
+    "rpm_est": "rpm"
+  },
+
+  "design_rules": {
+    "tile_span_cycles": 0.6,
+    "reference": "S02.M082"
+  }
+
+}

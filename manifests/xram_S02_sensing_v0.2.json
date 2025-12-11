@@ -1,0 +1,53 @@
+{
+  "version": "v0.1",
+  "neutral_band": {
+    "k1_sigma": 3.0,
+    "rpm_adapt": true,
+    "rpm_breaks": [60, 300, 900],
+    "k1_sigma_scale": [1.2, 1.0, 0.85],
+    "k1_sigma_min": 2.2,
+    "k1_sigma_max": 3.8
+  },
+  "pool_band": {
+    "alpha_amp": 0.40,
+    "hysteresis_margin": 0.10
+  },
+  "dvdt_threshold": {
+    "c_sigma_over_dt": 8.0,
+    "rpm_adapt": true,
+    "scale_vs_rpm": [[0, 0.9], [300, 1.0], [900, 1.2]],
+     "min": 4.0,
+    "max": 14.0
+  },
+  "monotonicity": {
+    "min_score": 0.60,
+    "window_samples": 5
+  },
+  "quality_gates": {
+    "fit_error_max": 0.02,
+    "context_snr_min": 10.0
+  },
+  "context_window_ms": {
+    "window_ms_low_rpm": 1.0,
+    "window_ms_high_rpm": 0.25
+  },
+  "sampling": {
+    "fs_per_channel_hz": 100000,
+    "pair_lock": true,
+    "pair_sync": "same_timer",
+    "timestamp_unit": "us"
+  },
+  "export": {
+    "level": 1,
+    "include_rejected": false
+  },
+  "calibration": {
+    "zero_baseline_ema": 0.001,
+    "recalibrate_on_static": true
+  },
+  "acceptance": {
+    "t_cross_rms_us_max": 10,
+    "false_flank_rate_max_pct": 0.5,
+    "queue_overflow_max": 0
+  }
+}

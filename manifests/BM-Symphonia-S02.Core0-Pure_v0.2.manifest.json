@@ -1,0 +1,64 @@
+{
+  "component": "S02.Core0-Pure",
+  "version": "v0.2",
+  "role": "Proprioceptive Event Refinement Layer",
+  "upstream": {
+    "source": "S02.Core0-Sensing (Capture-Lite v1.0)",
+    "input_stream": "Core0.RawEvent.v1.jsonl",
+    "timing_reference": "t_cross_us (µs since boot)",
+    "assumptions": {
+      "sensors": ["HallA", "HallB"],
+      "pools": ["SOUTH=-1", "NEUTRAL=0", "NORTH=1"],
+      "fields": [
+        "polarity",
+        "from_pool",
+        "to_pool",
+        "monotonicity",
+        "context_snr",
+        "dvdt"
+      ]
+    }
+  },
+  "downstream": {
+    "target": "S02.Core1-Awareness",
+    "output_stream": "Core0.PureStep.v1.jsonl",
+    "semantic_promise": [
+      "mechanical step candidates, direction-labeled",
+      "stability_hint: rot_candidate | nudge | ambiguous",
+      "dir_hint (single-sensor directional hint)",
+      "step_dir (final fused direction: CW | CCW | NONE)",
+      "timing and quality metadata usable for rpm, confidence"
+    ]
+  },
+  "responsibilities": [
+    "Filter ruwe flank-events op fysische geldigheid en signaalkwaliteit",
+    "Herleiden per flank waar in de magnetische cyclus we zitten (pool→neutral→pool)",
+    "Afleiden van voorlopige richtingsvector per individuele sensor (dir_hint via dv/dt signatuur)",
+    "Matchen van A/B flank-paren in de tijd (PAIR_WINDOW_US ≈ 30ms) om rotatiestappen te vormen",
+    "Fuseren van single-sensor direction hints en A/B-paring tot een gestroomlijnde staprichting (step_dir)",
+    "Markeren of deze stap een echte rotatiekandidaat is (rot_candidate) of slechts een tik/veer (nudge)",
+    "Exporteren van deze gestabiliseerde stapvorm naar Awareness"
+  ],
+  "quality_gates": {
+    "min_monotonicity": 0.6,
+    "min_context_snr": 2.0,
+    "max_false_step_rate_pct": 0.5,
+    "t_cross_rms_us": 10,
+    "pair_window_us": 30000,
+    "notes": "Criteria gerefereerd vanuit xram_S02_sensing_v0.2 en addendum S02.M082. pair_window_us afgestemd op handmatige rotatie (mens-schaal), niet industriële RPM."
+  },
+  "timing": {
+    "latency_budget_ms": 5,
+    "pair_window_us": 30000,
+    "ringbuffer_scope_ms": 200
+  },
+  "export_fields": {
+    "t_us": "representatieve timestamp (µs since boot)",
+    "step_dir": "CW | CCW | NONE (fused, high-level)",
+    "dir_hint": "up | down | none (single-sensor directional hint from dv/dt and pool transition)",
+    "quality": "0..1 fused confidence",
+    "delta_t_AB_us": "signed time offset between A and B flank in this step (null for single-sensor)",
+    "phase_tag": "A_then_B | B_then_A | single_A_only | single_B_only",
+    "stability_hint": "rot_candidate | nudge | ambiguous"
+  }
+}

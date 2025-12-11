@@ -1,0 +1,224 @@
+{
+  "type": "S02-XRAM-Core-1",
+  "version": "2.0b",
+  "status": "canonical",
+  "created_local": "2025-12-02 14:32:00 +0200",
+  "description": "Quality-wegingsknoppen; Mapping 40/20/40 blijft, maar T1/T2 mogen nu rpm/ruis-adaptief uit Core-0 hints lezen; RCC edge-policy iets losser omdat t× preciezer is.",
+  "ref": "xram_S02_core1_v2.0a.json",
+  "notes": [
+    "Clarity patch: direction is sensor-neutral; priors are equiprobable.",
+    "UNKNOWN is non-motion; onset requires KNOWN→KNOWN; cadence gate enabled.",
+    "Evidence uses Δt_AB (lag) and A↔B phase; confirm requires min pairs & ratio.",
+    "No derived metrics before onset; STOP resets derived metrics; Context Restoration & Motion Lifecycle Awareness",
+    "Vanaf core1 v2.0b is compass_dir_sign=+1 empirisch vastgesteld uit PhaseTiles v3 calibratie."
+  ],
+  "requires": {
+    "bios": "BM-SoRa-Primary v3.2.1",
+    "s02_core1": "BM-Symphonia-S02.Core1_v2.0a.manifest.json"
+  },
+  "params": {
+    "SECTOR_DEG": 30,
+    "BOUNDARY_OFFSET_DEG": 10,
+    "MAX_STEP_DEG": 20,
+    "ALPHA_MAX": 0.3,
+    "RCC_beta": { "value": 0.35, "range": [0.25, 0.45], "note": "Smoothing factor; log max|Δθ_fused| for WP-301" },
+    "K_follow": 2,
+
+    "Bias": {
+      "leading_prior": 0.5,
+      "nonleading_prior": 0.5,
+      "reset_condition": "Reset after hypothesis switch OR if evidence_source=none for >250 ms",
+      "deprecated_note": "Direction is decided by SROT evidence; this block remains for back-compat only."
+    },
+
+    "ingest": { "mode": "core0_events" },
+
+    "ternary_mapping": {
+      "neutral": { "k1_sigma": 3.0, "rpm_adaptive": true, "min": 2.2, "max": 3.8 },
+      "poles":   { "alpha_amp": 0.40, "hysteresis_margin": 0.10 }
+    },
+
+    "quality_weights": {
+      "use_core0_quality": true,
+      "dvdt": 0.35,
+      "fit_error": 0.25,
+      "monotonicity": 0.25,
+      "context_snr": 0.15
+    },
+
+    "Direction": {
+      "phi_ab_deg": 100.0,
+      "dir_polarity": "auto",
+      "priors": { "P_A_given_CW": 0.5, "P_B_given_CW": 0.5, "P_A_given_CCW": 0.5, "P_B_given_CCW": 0.5, "prior_strength_pairs": 0.5 },
+      "evidence": { "xsensor_lag_sigma_ms": 8.0, "xsensor_phase_tol_deg": 20.0 },
+      "confirm": { "min_pairs": 3, "ratio_min": 4.0, "window_max_s": 0.60, "no_conflicts_required": true }
+    },
+
+    "CompassTrend": {
+      "EMA_alpha": 0.2,
+      "log_fields": ["compass_slope", "compass_delta_deg"]
+    },
+
+    "CadenceGate": {
+      "metric": "CV_robust (MAD/median)",
+      "windows_events": [5, 11],
+      "thresholds": { "stable": 0.3, "unstable": 0.4 },
+      "hysteresis_note": "Enter stable at <=0.30; exit at >=0.40; log t_in/t_out"
+    },
+
+    "EvidenceGate": {
+      "evidence_min_rate_hz": 1,
+      "compass_min_delta_deg": 2,
+      "note": "If unmet or evidence_source=none, hold SROT dominance; keep RCC conservative"
+    },
+
+    "MotionStatus": {
+      "states": ["STATIC", "EVALUATING", "MOVING"],
+      "entry_rules": {
+        "STATIC": "No valid evidence",
+        "EVALUATING": "Evidence present, CadenceGate not yet stable",
+        "MOVING": "Evidence present AND CadenceGate stable"
+      }
+    },
+
+    "PreOnset": {
+      "unknown_is_non_motion": true,
+      "onset_requires_known_to_known": true,
+      "cadence_gate": { "enable": true, "max_dt_known_known_ms": 100 },
+      "semantic_weight_map": { "UNKNOWN": 0.0, "NEUTRAL": 0.2, "SOUTH": 1.0, "NORTH": 1.0 }
+    },
+
+    "Speed": {
+      "rpm_enable_after_pairs": 1,
+      "accel_enable_after_pairs": 2,
+      "rpm_ema_alpha": 0.20,
+      "units": ["rpm_local", "rpm_cumulative", "rps_cumulative", "deg_per_s_cumulative"]
+    },
+
+    "Stop": {
+      "T_stop_min_s": 0.015,
+      "T_stop_max_s": 0.300,
+      "T_stop_scale": { "sectors_per_rev": 12, "factor": 2.5 }
+    },
+
+    "Hygiene": {
+      "ignore_dt_leq_zero": true,
+      "treat_unknown_pool_as_na": true,
+      "why_na_required": true
+    }
+  },
+
+  "logging": {
+    "M0550_required_fields": [
+      "theta_fused_deg","omega_deg_s","dir","conf_angle","conf_dir","rpm_est","dt_event",
+      "rpm_ema","M0550_W_hard","M0550_W_at_fused","M0550_Hdom","M0550_alpha_effect",
+      "compass_slope","compass_delta_deg","evidence_source","flank_event_rate_hz","motion_status"
+    ],
+    "growth_and_jitter": {
+      "ConfDirGrowth": {
+        "method": "delta_conf_dir_per_event",
+        "window_events": 5,
+        "output_fields": { "conf_dir_delta": "conf_dir_delta", "log_likelihood_growth": "log_likelihood_growth" },
+        "plot_with": "conf_dir"
+      },
+      "RPMjitter": {
+        "method": "sigma_over_mean_rpm",
+        "window_events": 8,
+        "threshold_hint": 0.1,
+        "output_fields": { "rpm_jitter": "rpm_jitter" }
+      }
+    },
+    "acceptance_flags": {
+      "WP301_violation": "WP301_violation",
+      "WP401_violation": "WP401_violation",
+      "criteria": {
+        "WP-301": "Set violation=true if |Δθ_fused| > 90° OR %clamped > 25%",
+        "WP-401": "Set violation=true if alpha_effect > ALPHA_MAX"
+      }
+    },
+    "traceability": { "row_ref": "row_ref", "t_ref": "t_ref", "note": "Link each WP decision to its source event" }
+  },
+
+  "io_contract": {
+    "accepted_evidence": ["flank", "compass", "theta_v"],
+    "static_behavior": "If none present → status=STATIC; theta_fused holds; rpm_est=0; conf_dir stable",
+    "schema_templates": ["S02_legacy_parallel_template.csv"]
+  },
+
+  "heuristics": {
+    "CrossSensorConfirm": {
+      "CROSSCONFIRM_LAMBDA_DEFAULT": 0.25,
+      "CROSSCONFIRM_LAMBDA_DERATE": 0.15,
+      "PHI_DRIFT_TOL_DEG": 3,
+      "PHI_DRIFT_N_EVENTS": 8,
+      "WINDOWS_DEG": { "STRONG": 5, "MEDIUM": 10, "WEAK": 15 },
+      "LOG_FIELDS": [
+        "delta_phi_cal_deg","delta_phi_est_deg","crossconfirm_health","window_class","confirmationScore","lambda_ccf"
+      ],
+      "NOTES": "λ derates to 0.15 when crossconfirm_health=WARN; uses calibrated Δφ for anchor."
+    }
+  },
+
+  "modules": {
+    "context_restoration": {
+      "enabled": true,
+      "onset": { "prelude_duration_s": 0.50, "unknown_flanks": 4, "auto_onset_threshold_pairs": 2 },
+      "stop": { "coda_duration_s": 0.60, "unknown_flanks": 4 },
+      "dt_filter": { "min_s": 0.04, "max_s": 0.50 }
+    },
+
+    "cadence": {
+      "cv_robust_window": 11,
+      "cadence_weight": { "cv_scale": 0.40, "moving_threshold": 0.20 },
+      "quality_weighted_dt": true
+    },
+
+    "cadence_persistence": {
+      "enabled": true,
+      "flow_tail_gain": 0.30,
+      "persistence_decay": 0.80,
+      "min_hold_s": 0.20,
+      "max_hold_s": 0.35,
+      "fast_decay_dt_threshold": 0.50,
+      "fast_decay_step": 0.08
+    },
+
+    "rcc": {
+      "base_window_s": 0.18,
+      "window_min_s": 0.015,
+      "window_max_s": 0.300,
+      "scale_vs_Wc": { "a": 1.2, "b": 0.4 },
+      "edge_clamp_s": { "onset_max": 0.10, "post_stop_max": 0.10, "edge_window_s": 0.30 },
+      "quality_scaled": true
+    },
+
+    "direction": {
+      "confirm_min_pairs": 3,
+      "confirm_ratio_min": 4.0,
+      "conf_dir_lerp_gain": 0.20,
+      "compass_dir_sign": 1,
+      "no_conflicts": true,
+      "weighted_pairs": true
+    },
+
+    "acceptance": {
+      "wc_mean_improve_pct_min": 10,
+      "rcc_band_reduce_pct_min": 20,
+      "dir_confirm_pairs_delta_max": -1
+    },
+
+    "telemetry": {
+      "log_fields": [
+        "cv_raw","cv_filt","cadence_weight","dt_filter_ratio",
+        "conf_dir","conf_angle","motion_status",
+        "rcc_window_s","why_na","data_origin", "context_applied",
+        "onset_sharpness","stop_sharpness","edge_energy_ratio"
+      ],
+      "why_na_vocab": [
+        "pre-onset","unknown-non-motion","insufficient-dt",
+        "insufficient-rpm-history","stop-static","masked-by-policy"
+      ]
+    }
+  }
+
+}

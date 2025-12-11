@@ -1,0 +1,57 @@
+{
+  "module": "S02.Sensing",
+  "version": "v1.0",
+  "purpose": "Core0 sensing hooks for precise flanks and rich events",
+  "timing_contract": {
+    "shared_hw_timer_hz": 80000000,
+    "timestamp_unit": "us",
+    "target_t_cross_rms_us": 10,
+    "ab_skew_p95_us": 5
+  },
+  "adc": {
+    "mode": "continuous_dma",
+    "channels": ["A", "B"],
+    "pair_trigger": "same_timer",
+    "fs_per_channel_hz": 100000
+  },
+  "hooks": [
+    {"name": "hook_sense_tick", "in": [], "out": ["t_us","vA","vB"]},
+    {"name": "hook_zero_cross_candidate", "in": ["t_us","v"], "out": ["t_minus","v_minus","t_plus","v_plus","sensor"]},
+    {"name": "hook_cross_interpolate", "in": ["t_minus","v_minus","t_plus","v_plus"], "out": ["t_cross_us","dvdt","fit_error","polarity"]},
+    {"name": "hook_flank_quality_gate", "in": ["t_cross_us","dvdt","fit_error","polarity","context"], "out": ["qual_pass","monotonicity","context_snr","v_env_pre","v_env_post","why_drop"]},
+    {"name": "hook_event_emit", "in": ["event_core0"], "out": ["queue_push_core1"]}
+  ],
+  "event_schema_core0_to_core1": {
+    "t_cross_us": "int64",
+    "sensor": "\"A\"|\"B\"",
+    "polarity": "\"+\"|\"-\"",
+    "dvdt": "float (LSB/us or V/s; see units)",
+    "fit_error": "float",
+    "monotonicity": "float[0..1]",
+    "context_snr": "float (dB or unitless; see units)",
+    "v_env_pre": {"mean":"float","mad":"float","n":"int"},
+    "v_env_post": {"mean":"float","mad":"float","n":"int"}
+  },
+  "context_window_ms": {
+    "low_rpm": 1.0,
+    "high_rpm": 0.25
+  },
+  "compat": {
+    "awareness_input": "S02.Event.In.v1",
+    "notes": "Core0 emits only qual_pass=true events; drops retain why_drop in debug mode"
+  },
+  "routing": {
+    "queue_name": "S02_SensingEvents",
+    "batch_read_ms": 2
+  },
+  "units": {
+    "t_cross_us": "microseconds",
+    "dvdt": "LSB_per_us",
+    "context_snr": "dB",
+    "notes": "If dvdt in V/s, set units accordingly and keep consistent."
+  },
+  "provenance": {
+    "bios": "BM-SoRa-Primary v3.2.1",
+    "manifest_awareness": "BM-Symphonia-S02_v1.2.j"
+  }
+}
