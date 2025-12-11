@@ -170,10 +170,8 @@ Voor nieuwe SoRa-vertakkingen of fresh chats is dit de minimale instructie om al
 
 > **Code-bronnen:**
 > Gebruik voor Core-0 (C) de Gist-mirror:
-> `https://gist.github.com/PoellieOne/28525d4714b6c4ee0c66cee64ccb00f1`
 >
 > Gebruik voor de PC-side / sym_cycles (Python) de Gist-mirror:
-> `https://gist.github.com/PoellieOne/38ab39466c4eba6c6cb79c5e0d769506`
 >
 > Lees code altijd rechtstreeks uit deze Gists (raw), zonder aannames of regelaantal-schattigingen.
 > De private GitHub-repo’s zijn de canonieke ontwikkelbron; de Gists zijn de enige gedeelde leesbron voor analyse/debugging.
