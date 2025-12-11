@@ -1,5 +1,5 @@
 # Symphonia S02 — Project Overview & Architecture Index
-Version: 2025-01 (clean structure)
+Version: 2025-12 (gist-driven, SoRa v4.2 aligned)
 
 Symphonia S02 bestaat uit drie lagen:
 1. **SoRa BIOS** – meta-structuur en roldefinitie
@@ -140,21 +140,63 @@ Voor samenwerking met SoRa/Sophia gebruiken we **twee publieke Gist-mirrors** al
 * **Core-0 firmware (C) – Gist-mirror**
   → [https://gist.github.com/PoellieOne/28525d4714b6c4ee0c66cee64ccb00f1](https://gist.github.com/PoellieOne/28525d4714b6c4ee0c66cee64ccb00f1)
 
-  Bevat o.a.:
-
-  * `core0_config.c / .h`
-  * `core0_sensing.c`
-  * `core0_filtered.c / .h`
-  * `core0_link.c / .h`
+```
+symphonia-core0
+|
+├── include
+│   ├── core0_config.h
+│   ├── core0_filtered.h
+│   └── core0_link.h
+├── README.md
+└── src
+    ├── core0_config.c
+    ├── core0_filtered.c
+    ├── core0_link.c
+    └── core0_sensing.c
+```
 
 * **PC-side / sym_cycles (Python) – Gist-mirror**
   → [https://gist.github.com/PoellieOne/38ab39466c4eba6c6cb79c5e0d769506](https://gist.github.com/PoellieOne/38ab39466c4eba6c6cb79c5e0d769506)
 
-  Bevat o.a.:
+```
+symphonia-core0-pc
+|
+├── Legacy
+│   ├── movement_body_v3_.py
+│   ├── realtime_states_v1_0.py
+│   ├── realtime_states_v1_2_dual_track.py
+│   ├── realtime_states_v1_2.py
+│   ├── realtime_states_v1_3_cycles_physical.py
+│   ├── realtime_states_v1_4_claim_at_lock.py
+│   ├── realtime_states_v1_5_bootwarmup.py
+│   ├── realtime_states_v1_6_bench_profile.py
+│   ├── realtime_states_v1_7_stereo_filter.py
+│   └── realtime_states_v1_8_compass_fix.py
+├── README.md
+├── scripts
+│   ├── binlink.py
+│   ├── capture_core0.py
+│   ├── live_symphonia_v1_9_poc.py
+│   ├── live_symphonia_v1_9.py
+│   ├── live_symphonia_v2_0.py
+│   ├── replay_core0_events_v1_9.py
+│   └── visualize_symphonia_v1_9.py
+└── sym_cycles
+    ├── backbone_v1_1.py
+    ├── builder_v1_0.py
+    ├── compass_sign_v3.py
+    ├── demo_check.py
+    ├── __init__.py
+    ├── l1_physical_activity.py
+    ├── movement_body_v3.py
+    ├── phase_tiles_v3_0.py
+    ├── phase_universe_v1_0.py
+    ├── pipeline_offline.py
+    ├── projector_v1_0.py
+    ├── realtime_compass.py
+    └── realtime_states_v1_9_canonical.py
 
-  * `sym_cycles/*.py`
-  * `scripts/binlink.py`
-  * `scripts/capture_core0.py`
+```
 
 **Belangrijk:**
 
@@ -168,15 +210,16 @@ Voor samenwerking met SoRa/Sophia gebruiken we **twee publieke Gist-mirrors** al
 
 Voor nieuwe SoRa-vertakkingen of fresh chats is dit de minimale instructie om altijd dezelfde code-werkelijkheid te delen:
 
-> **Code-bronnen:**
-> Gebruik voor Core-0 (C) de Gist-mirror:
->
-> Gebruik voor de PC-side / sym_cycles (Python) de Gist-mirror:
->
-> Lees code altijd rechtstreeks uit deze Gists (raw), zonder aannames of regelaantal-schattigingen.
-> De private GitHub-repo’s zijn de canonieke ontwikkelbron; de Gists zijn de enige gedeelde leesbron voor analyse/debugging.
+### 7.1 Gebruik voor Core-0 (C++) de Gist-mirror
+### 7.2 Gebruik voor de PC-side / sym_cycles (Python) de Gist-mirror
 
-Aanvullend kunnen UI Projects in OpenAI gebruikt worden voor:
+**Code-bronnen:**
+
+* Lees code altijd rechtstreeks uit deze Gists (raw), zonder aannames of regelaantal-schattigingen.
+* De private GitHub-repo’s zijn de canonieke ontwikkelbron; de Gists zijn de enige gedeelde leesbron voor analyse/debugging.
+* Geavanceerd: Voor SoRa-gestuurde sessies kan ook de ‘S02 Bootstrap’-prompt gebruikt worden (zie BIOS gist). Deze activeert BM-SoRa-Primary v4.2 en volgt daarna dit README (§2–§7) als canoniek laadprotocol
+
+**Aanvullend kunnen UI Projects in OpenAI gebruikt worden voor:**
 
 * SoRa-manifesten (BM-SoRa-Primary, BM-Symphonia-S02, X-RAM snapshots)
 * Architectuurdocumenten zoals deze README
