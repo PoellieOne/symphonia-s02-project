@@ -108,7 +108,7 @@ Deze bestanden blijven toegankelijk maar zijn niet langer leidend:
 De inhoud bevat waardevolle ontwerprationale maar de functionele waarheid ligt in:
 - manifests
 - xram
-- architectuurdocumenten hierboven
+- architectuurdocumenten
 - actuele Python/C code
 
 ---
@@ -207,7 +207,7 @@ symphonia-core0-pc
 
 * De Gists worden automatisch gesynchroniseerd via lokale scripts (`gist_.sh`, `sync2.sh`).
 * SoRa/Sophia leest *uitsluitend* de raw-code uit deze Gists (geen gokwerk, geen schattingen).
-* Private GitHub-repo’s blijven de enige schrijfbare, canonieke bron.
+* Public GitHub-repo’s blijven de enige schrijfbare, canonieke bron.
 
 ---
 
@@ -218,8 +218,7 @@ Voor nieuwe SoRa-vertakkingen of fresh chats is dit de minimale instructie om al
 ### 7.1 Gebruik voor Core-0 (C++) de Gist-mirror
 ### 7.2 Gebruik voor de PC-side / sym_cycles (Python) de Gist-mirror
 
-**Code-bronnen:**
-
+### 7.3 Code-bronnen
 * Lees code altijd rechtstreeks uit deze Gists (raw), zonder aannames of regelaantal-schattigingen.
 * De private GitHub-repo’s zijn de canonieke ontwikkelbron; de Gists zijn de enige gedeelde leesbron voor analyse/debugging.
 * Geavanceerd: Voor SoRa-gestuurde sessies kan ook de ‘S02 Bootstrap’-prompt gebruikt worden (zie BIOS gist). Deze activeert BM-SoRa-Primary v4.2 en volgt daarna dit README (§2–§7) als canoniek laadprotocol
@@ -238,7 +237,7 @@ De .py- en .c-bronbestanden hoeven niet meer in de Projects-UI te staan zolang d
 ## 9. Contact & Rollen (via SoRa)
 
 - **Sophia (OpenAI)** — Lead Architect S02
-- **Sophia (Anthropic)** — Observatory & Diagnostics
+- **Sophia (Anthropic)** — Developer, Observatory & Diagnostics
 - **Ralph** — Human Architect, Vision Holder, Meta-Integrator
 
 ---
