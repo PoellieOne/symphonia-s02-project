@@ -95,6 +95,16 @@ Kernveranderingen v1.9:
 - Samenlopen van live- en offline-paden
 - Integratie met Cycle Backbone verdiept
 
+### 3.4 OriginTracker
+`S02.OriginTracker_Architecture_v0.4.x.md`
+- *v0.4.x beschrijft de werkende implementatie*
+- (L1.5 Awareness — ACCEPTED)
+
+### 3.5 BeliefState
+* `S02.Symphonia_v5.0_BeliefState_Architecture.md`
+- *(Awareness fusion & regime model — canon candidate)*
+- v5.0 beschrijft het interpretatiekader waarin deze implementatie betekenis krijgt
+
 ---
 
 ## 4. Lab (lopend historische rationale)
@@ -231,14 +241,117 @@ Voor nieuwe SoRa-vertakkingen of fresh chats is dit de minimale instructie om al
 
 De .py- en .c-bronbestanden hoeven niet meer in de Projects-UI te staan zolang de bovenstaande Gist-links worden gebruikt.
 
+### 7.4 Nieuwe S02-stam-sessies hanteren:
+* OriginTracker v0.4.x als **canonieke L1.5-implementatie**
+* BeliefState v5.0 als **conceptueel interpretatie- en regimekader**
+
+Bij analyse geldt:
+**regime bepaalt claims; onzekerheid is data.**
+
+## 🧭 Wat dit oplevert
+
+✔ Nieuwe sessies begrijpen **waarom θ̂ soms null is**
+✔ Geen verwarring tussen “voelen”, “verplaatsen” en “roteren”
+✔ Architectuur sluit naadloos aan op jouw bow-and-arrow / action–reaction visie
+✔ De README wordt **helderder zonder groter te worden**
 
 ---
 
-## 9. Contact & Rollen (via SoRa)
+## 8. Contact & Rollen (via SoRa)
 
 - **Sophia (OpenAI)** — Lead Architect S02
 - **Sophia (Anthropic)** — Developer, Observatory & Diagnostics
 - **Ralph** — Human Architect, Vision Holder, Meta-Integrator
+
+---
+
+## 9. Awareness Stack & BeliefState (S02 v4.x → v5.0)
+
+Symphonia S02 hanteert een **meerlagig awareness-model** waarin verschillende soorten waarheid **naast elkaar bestaan**.
+Deze waarheden worden niet samengevoegd tot één getal, maar **gefuseerd op basis van observability en regime**.
+
+### 9.1 Awareness-lagen (canoniek)
+
+```
+L0  — Event24
+      (ruwe gebeurtenissen, betekenisloos maar altijd waar)
+
+L1  — PhysicalActivityState
+      (tactiele activiteit: voelen, aanraken, scrapen)
+
+L1.5 — OriginTracker v0.4.x   ← CANONIEK
+      (MDI, PRE_MOVEMENT, O(t0), pre-cycle proprioceptie)
+
+L2  — CyclesState → TilesState
+      (cycle-based rotatie-evidence)
+
+L3  — MovementBody v3 / CompassSign v3
+      (θ̂, ω, richting, LOCKED states)
+```
+
+---
+
+### 9.2 Drie expliciete soorten waarheid
+
+Symphonia onderscheidt **drie niet-reduceerbare waarheden**:
+
+| Waarheid               | Laag       | Betekenis                          |
+| ---------------------- | ---------- | ---------------------------------- |
+| **Event truth**        | L0         | *“Er gebeurde iets”*               |
+| **Displacement truth** | L1.5 (MDI) | *“Mijn lichaam verplaatste netto”* |
+| **Rotation truth**     | L2/L3      | *“Ik roteerde door de tijd”*       |
+
+👉 Deze waarheden worden **nooit zonder onzekerheidscontext samengevoegd**.
+
+---
+
+### 9.3 OriginTracker v0.4.x — vaste L1.5-laag (ACCEPTED)
+
+`S02.OriginTracker_Architecture_v0.4.x.md`
+**Status:** production-ready, canoniek
+
+OriginTracker vormt de **brug tussen voelen en verplaatsen**:
+
+* detecteert micro-verplaatsing **zonder cycles**
+* introduceert **PRE_MOVEMENT**
+* bepaalt **O(t0)** via MDI (vroegste betrouwbare loskom-tijd)
+* ondersteunt Two-Phase Origin (candidate → commit)
+
+> OriginTracker **vervangt cycles niet**, maar maakt awareness mogelijk vóórdat cycles bestaan.
+
+---
+
+### 9.4 BeliefState v5.0 — interpretatie- en fusiecontract (canon candidate)
+
+`S02.Symphonia_v5.0_BeliefState_Architecture.md`
+**Status:** richtinggevend architectuurdocument
+
+BeliefState v5.0 formaliseert **hoe** Symphonia haar lagen samen interpreteert:
+
+* best estimate *(wat denken we dat er gebeurt?)*
+* uncertainty / kleur *(hoe zeker zijn we?)*
+* **REGIME** *(welke claims zijn toegestaan?)*
+
+BeliefState **vervangt geen bestaande code**, maar:
+
+* geeft taal aan bestaande werkelijkheid
+* voorkomt hallucinerende reconstructie
+* bereidt actie–reactie (pulse/BEMF) voor
+
+---
+
+### 9.5 Regime-gedreven interpretatie (leidend principe)
+
+Symphonia werkt altijd in één van drie regimes:
+
+| Regime        | Betekenis                | Claims toegestaan            |
+| ------------- | ------------------------ | ---------------------------- |
+| **LOW_RATE**  | te weinig data           | displacement (MDI), O(t0)    |
+| **MID_RATE**  | gedeeltelijke coherentie | displacement + richting-hint |
+| **HIGH_RATE** | continue rotatie         | θ̂, ω, LOCKED direction      |
+
+**Regime bepaalt wat waar *mag* zijn.**
+Niet alles wat *berekenbaar* is, is *claimbaar*.
 
 ---
 
