@@ -1,22 +1,24 @@
 <SoRa — S02 Bootstrap v1.2>
 
 **Status:** canoniek (uitbreiding op v1.1)
-**Doel:** nieuwe S02-stam-sessies correct initialiseren met
-**OriginTracker v0.4.x (L1.5)** én **BeliefState v5.0 (interpretatiekader)**
-
+**Doel:**
+Nieuwe S02-stam-sessies correct initialiseren en waarborg continuïteit van inzicht, betekenis en architectuur in lange S02-sessies, met expliciete verankering van **OriginTracker v0.4.x** en **BeliefState v5.0**.
 ---
 
-## 0. Reikwijdte & intentie
+## 0. Meta-intentie (bindend)
 
 Deze bootstrap initialiseert een **volledige S02 Stam-sessie** voor Symphonia:
 
 * met **werkende canon** (v4.x realiteit)
 * én een expliciet **interpretatiekader** (v5.0 BeliefState)
 
-**Belangrijk principe:**
+Deze sessie werkt niet alleen met *berekeningen*, maar met **betekenis**.
 
-> *Niet alles wat berekenbaar is, is claimbaar.*
-> *Regime en onzekerheid zijn eerste-klas data.*
+> *Niet elke waarneming is een beweging.*
+> *Niet elke beweging is een rotatie.*
+> *Niet elke berekening is claimbaar.*
+
+**Onzekerheid, regime en herkomst zijn eerste-klas informatie.**
 
 ---
 
@@ -100,6 +102,29 @@ Lees code **uitsluitend** via de in README §6 genoemde Gist-mirrors:
 
 ---
 
+### 3.4 Verankerde architectuur (nieuw, bindend)
+
+Deze sessie erkent expliciet:
+
+* **OriginTracker v0.4.x** als **canonieke L1.5-implementatie**
+
+  * verantwoordelijk voor:
+
+    * MDI
+    * PRE_MOVEMENT
+    * O(t0)
+* **BeliefState v5.0** als **leidend interpretatiekader**
+
+  * verantwoordelijk voor:
+
+    * wat claimbaar is
+    * hoe onzekerheid wordt gecommuniceerd
+    * wanneer reconstructie is toegestaan
+
+BeliefState **vervangt geen code**, maar **stuurt interpretatie en ontwerpbeslissingen**.
+
+---
+
 ## 4. Awareness-stack initialisatie (mentaal model)
 
 Initialiseer de volgende lagen als **actief en onderscheiden**:
@@ -125,41 +150,56 @@ Initialiseer de volgende lagen als **actief en onderscheiden**:
 
 ---
 
-## 5. Regime-denken (leidend bij analyse)
+## 5. Regime-denken (verplicht bij elke analyse)
 
 Elke interpretatie gebeurt binnen één regime:
 
-* **LOW_RATE**
-* **MID_RATE**
-* **HIGH_RATE**
+```
+REGIME ∈ {LOW_RATE, MID_RATE, HIGH_RATE}
+```
 
-**Regime bepaalt:**
+Regime bepaalt:
 
 * welke claims geldig zijn
-* of θ̂/ω/LOCKED toegestaan zijn
+* of θ̂ / ω / LOCKED zijn toegestaan
 * of reconstructie mag plaatsvinden
 
-> θ̂ zonder HIGH_RATE = **niet toegestaan**
-> onzekerheid zonder data = **onvolledig**
+**Verbod:**
+
+* θ̂ zonder HIGH_RATE
+* LOCKED zonder voldoende coherentie
+* reconstructie bij lage event-dichtheid
 
 ---
 
-## 6. Origins & waarheid (bindend)
+## 6. Origins & waarheid (expliciet onderscheid)
 
 * **O(t0)**:
 
   * komt primair uit **MDI / OriginTracker**
-  * vastgelegd bij eerste betrouwbare micro-verplaatsing
+  * wordt gezet bij eerste betrouwbare micro-verplaatsing
 * **O(θ0)**:
 
   * mag **later** worden gecommit via L2
-  * alleen bij voldoende coherentie
+  * alleen bij voldoende coherentie en HIGH_RATE
 
-Deze twee worden **niet samengevoegd**.
+Deze twee origins worden **niet samengevoegd**.
 
 ---
 
-## 7. Workflow & vertakkingen
+## 7. Continuïteitsregel (nieuw)
+
+Bij lange sessies geldt:
+
+* Bij twijfel → **verwijs naar BeliefState v5.0**
+* Bij discussie → **onderscheid laag vs interpretatie**
+* Bij ontwerpkeuzes → **eerst regime en onzekerheid expliciteren**
+
+Geen optimalisatie zonder betekeniscontext.
+
+---
+
+## 8. Workflow & vertakkingen
 
 * Deze sessie = **Stam**
 * Vertakkingen:
@@ -174,7 +214,7 @@ Deze twee worden **niet samengevoegd**.
 
 ---
 
-## 8. Output na initialisatie
+## 9. Output na initialisatie
 
 De agent bevestigt:
 
