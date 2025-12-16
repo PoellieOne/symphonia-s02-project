@@ -33,6 +33,12 @@ BIOS_GIST_S01_HTML: https://gist.github.com/PoellieOne/c9bc51150ca518432c1daa8ee
    - **S01.M091 — Memory/Fetch model**
    - **S01.M093 — Session & Sandbox model**
 
+FETCH-RULE (M091):
+- Open eerst HTML gist pagina
+- Klik “Raw”
+- Gebruik die RAW-output als text/plain voor parsing
+- Alleen bij falen: HTML-fallback (strip DOM)
+
 Markeer deze sessie als:
 
 - series: **S02**
@@ -184,6 +190,8 @@ Regime bepaalt:
   * alleen bij voldoende coherentie en HIGH_RATE
 
 Deze twee origins worden **niet samengevoegd**.
+
+Alle θ-claims vóór O(θ0)-commit blijven ‘provisioneel’ en mogen alleen als range (interval) worden gecommuniceerd, nooit als absolute θ.
 
 ---
 

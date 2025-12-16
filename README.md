@@ -26,6 +26,12 @@ Symphonia gebruikt SoRa voor:
 
 De BIOS wordt niet lokaal in de repo geplaatst.
 
+FETCH-RULE (M091):
+- Open eerst HTML gist pagina
+- Klik “Raw”
+- Gebruik die RAW-output als text/plain voor parsing
+- Alleen bij falen: HTML-fallback (strip DOM)
+
 ---
 
 ## 2. Machineprofielen (manifests + XRAM)
@@ -103,7 +109,7 @@ Kernveranderingen v1.9:
 ### 3.5 BeliefState
 * `S02.Symphonia_v5.0_BeliefState_Architecture.md`
 - *(Awareness fusion & regime model — canon candidate)*
-- v5.0 beschrijft het interpretatiekader waarin deze implementatie betekenis krijgt
+- BeliefState v5.0 is leidend interpretatiekader (canon candidate qua documentstatus), bindend voor communicatie en ontwerpbeslissingen.
 
 ---
 
