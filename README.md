@@ -265,9 +265,32 @@ Bij analyse geldt:
 
 ## 8. Contact & Rollen (via SoRa)
 
-- **Sophia (OpenAI)** — Lead Architect S02
-- **Sophia (Anthropic)** — Developer, Observatory & Diagnostics
+- **Sophia (Stam)** — Stam partner van Ralph en tevens rol als Lead Architect S02
+- **Sophia (Gatekeeper)** — Sparringspartner van Ralph als aannemer; contractvorming, verificatie en agent-aansturing/delegeren
+- **Code Agents** - Code agents werken in een afgeschermde development omgeving met testbench en opereren uitsluitend via Gatekeeper-Task-Briefs
 - **Ralph** — Human Architect, Vision Holder, Meta-Integrator
+
+## 8.1 Development werkwijze
+* Symphonia S02 kent **meerdere operationele bouwterreinen**
+* Elk bouwterrein:
+
+  * is **project-gebonden**
+  * heeft een **eigen repo + gist mirror**
+  * heeft een **eigen README als operationele canon**
+* De Gatekeeper:
+
+  * laadt bij bootstrap **alle bouwterreinen die hierin worden genoemd**
+  * de bouwterrein-gists zoals door dit README aangewezen, via https://gist.github.com/PoellieOne
+  * gebruikt hun README’s als feitelijke uitvoercontext
+* Agents:
+
+  * werken **uitsluitend** binnen één aangewezen bouwterrein
+  * volgen de daar geldende contracten en Task Briefs
+
+Voor nu is er minimaal:
+
+* **PC-side bouwterrein** (Python / sym_cycles / testbench)
+* **Core-0 bouwterrein** (ESP32 firmware, C/C++)
 
 ---
 
