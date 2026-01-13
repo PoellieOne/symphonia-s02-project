@@ -1,0 +1,80 @@
+{
+  "xram_id": "S02.Core0Pure.v0.5",
+  "alias": "loose-human",
+  "inherits_from": "v0.4",
+  "description": "Core-0 → Pure capture profile tuned for human-rotation. Wider pairing window and soft nudge-export for better continuity between RAW and Awareness. | v0.5 adds GH/H temporal-presence research memory (no control/semantics).",
+  "params": {
+    "OUT_DIR": "bench007_v0.1.Binary",
+    "PURE_PAIR_WINDOW_US": 75000,
+    "PURE_MIN_MONO": 0.4,
+    "PURE_MIN_SNR": 1.5,
+    "PURE_EXPORT_ROT_CANDIDATE_PAIRS": true,
+    "PURE_EXPORT_NUDGE_SINGLES": true,
+    "PURE_EXPORT_FIELDS": [
+      "t_us",
+      "step_dir",
+      "dir_hint",
+      "theta_local_deg",
+      "quality",
+      "delta_t_AB_us",
+      "stability_hint"
+    ]
+  },
+  "expectations": {
+    "expected_output_density": "≈50–80 PureSteps per 6–7 s manual rotation",
+    "expected_direction_consistency": "≥90 %",
+    "expected_pair_to_nudge_ratio": "≈1:2",
+    "awareness_idle_timeout_ms": 300
+  },
+  "change_log": [
+    {
+      "from": "v0.2b",
+      "changes": [
+        "Increased PURE_PAIR_WINDOW_US from 50000 µs → 75000 µs",
+        "Enabled export of single flanks as stability_hint='nudge'",
+        "Retained quality gates (monotonicity≥0.4, snr≥1.5)",
+        "Defined capture_profile='loose-human.v0.4' for human-rotation testing"
+      ],
+      "rationale": "Previous profile yielded only ~3 PureSteps per rotation; this version restores continuity and proprioceptive density while maintaining clean gating."
+    },
+    {
+      "from": "v0.4",
+      "changes": [
+        "Added observations memory block S02.Observability.GH.v0.1 (G1–G4 + H v0.1)",
+        "Recorded CORE temporal presence capability (PRESENCE_START/END/HEARTBEAT) and read-only dashboard existence",
+        "No changes to capture params or quality gates"
+      ],
+      "rationale": "Promote the latest validated observability trajectory into X-RAM as flash memory, while keeping semantics and control strictly unchanged."
+    }
+  ],
+  "bench_reference": "bench001_v2 (CW rotation, 262 RAW → 17 PURE)",
+  "observations": [
+    {
+      "obs_id": "S02.Observability.GH.v0.1",
+      "status": "active",
+      "scope": [
+        "PC-side",
+        "CORE"
+      ],
+      "summary": "G1–G4 executed with strict discipline; H v0.1 added CORE temporal presence (PRESENCE_START/END/HEARTBEAT) enabling post-hoc episode reconstruction; live read-only dashboard added. No control or semantic changes.",
+      "capabilities": [
+        "CORE temporal presence events: PRESENCE_START",
+        "CORE temporal presence events: PRESENCE_END",
+        "CORE temporal presence events: PRESENCE_HEARTBEAT",
+        "Read-only terminal dashboard for live human observation (logging remains canonical)"
+      ],
+      "constraints": [
+        "no semantic labels for configurations/episodes",
+        "no live/post-hoc fusion in reporting",
+        "no control implications or mapping to Action Intent",
+        "additive logging only; do not break existing tools"
+      ],
+      "key_facts": [
+        "G2: Frame A showed overlap only when using ALL-signals; CORE overlap visible post-hoc (Frame B).",
+        "G4: 13 episodes reconstructed across 4 runs, grouped into 5 technical configurations (no semantics).",
+        "ORIGIN_CANDIDATE presence appeared in 3/4 logs; ORIGIN_COMMIT absent in that dataset."
+      ],
+      "notes_ref": "Architect Notes - Post-G4 ⁄ H Observations.md"
+    }
+  ]
+}
